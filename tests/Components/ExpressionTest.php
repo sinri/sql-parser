@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Components;
 
@@ -21,10 +22,10 @@ class ExpressionTest extends TestCase
     }
 
     /**
-     * @dataProvider testParseErrProvider
-     *
      * @param mixed $expr
      * @param mixed $error
+     *
+     * @dataProvider parseErrProvider
      */
     public function testParseErr($expr, $error)
     {
@@ -34,40 +35,40 @@ class ExpressionTest extends TestCase
         $this->assertEquals($errors[0][0], $error);
     }
 
-    public function testParseErrProvider()
+    public function parseErrProvider()
     {
-        return array(
+        return [
             /*
-            array(
+            [
                 '(1))',
                 'Unexpected closing bracket.',
-            ),
+            ],
             */
-            array(
+            [
                 'tbl..col',
                 'Unexpected dot.',
-            ),
-            array(
+            ],
+            [
                 'id AS AS id2',
                 'An alias was expected.',
-            ),
-            array(
+            ],
+            [
                 'id`id2`\'id3\'',
                 'An alias was previously found.',
-            ),
-            array(
+            ],
+            [
                 '(id) id2 id3',
                 'An alias was previously found.',
-            ),
-        );
+            ],
+        ];
     }
 
     public function testBuild()
     {
-        $component = array(
+        $component = [
             new Expression('1 + 2', 'three'),
             new Expression('1 + 3', 'four'),
-        );
+        ];
         $this->assertEquals(
             Expression::build($component),
             '1 + 2 AS `three`, 1 + 3 AS `four`'

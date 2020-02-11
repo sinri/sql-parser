@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Builder;
 
@@ -27,6 +28,7 @@ class CreateStatementTest extends TestCase
 
     public function testBuilderDatabase()
     {
+        // CREATE DATABASE ...
         $parser = new Parser(
             'CREATE DATABASE `mydb` ' .
             'DEFAULT CHARACTER SET = utf8 DEFAULT COLLATE = utf8_general_ci'
@@ -35,6 +37,20 @@ class CreateStatementTest extends TestCase
 
         $this->assertEquals(
             'CREATE DATABASE `mydb` ' .
+            'DEFAULT CHARACTER SET=utf8 DEFAULT COLLATE=utf8_general_ci',
+            $stmt->build()
+        );
+
+
+        // CREATE SCHEMA ...
+        $parser = new Parser(
+            'CREATE SCHEMA `mydb` ' .
+            'DEFAULT CHARACTER SET = utf8 DEFAULT COLLATE = utf8_general_ci'
+        );
+        $stmt = $parser->statements[0];
+
+        $this->assertEquals(
+            'CREATE SCHEMA `mydb` ' .
             'DEFAULT CHARACTER SET=utf8 DEFAULT COLLATE=utf8_general_ci',
             $stmt->build()
         );
@@ -99,19 +115,19 @@ class CreateStatementTest extends TestCase
         $stmt = new CreateStatement();
 
         $stmt->name = new Expression('', 'test', '');
-        $stmt->options = new OptionsArray(array('TABLE'));
-        $stmt->fields = array(
+        $stmt->options = new OptionsArray(['TABLE']);
+        $stmt->fields = [
             new CreateDefinition(
                 'id',
-                new OptionsArray(array('NOT NULL', 'AUTO_INCREMENT')),
-                new DataType('INT', array(11), new OptionsArray(array('UNSIGNED')))
+                new OptionsArray(['NOT NULL', 'AUTO_INCREMENT']),
+                new DataType('INT', [11], new OptionsArray(['UNSIGNED']))
             ),
             new CreateDefinition(
                 '',
                 null,
-                new Key('', array(array('name' => 'id')), 'PRIMARY KEY')
+                new Key('', [['name' => 'id']], 'PRIMARY KEY')
             ),
-        );
+        ];
 
         $this->assertEquals(
             "CREATE TABLE `test` (\n" .
@@ -202,8 +218,8 @@ class CreateStatementTest extends TestCase
 
     public function partitionQueries()
     {
-        return array(
-            array(
+        return [
+            [
                 'subparts' => <<<EOT
 CREATE TABLE `ts` (
   `id` int(11) DEFAULT NULL,
@@ -226,8 +242,9 @@ SUBPARTITION s5 ENGINE=InnoDB
 )
 )
 EOT
-            ),
-            array(
+            ,
+            ],
+            [
                 'parts' => <<<EOT
 CREATE TABLE ptest (
   `event_date` date NOT NULL
@@ -241,14 +258,15 @@ PARTITION p3 ENGINE=InnoDB,
 PARTITION p4 ENGINE=InnoDB
 )
 EOT
-            ),
-        );
+            ,
+            ],
+        ];
     }
 
     /**
-     * @dataProvider partitionQueries
-     *
      * @param string $query
+     *
+     * @dataProvider partitionQueries
      */
     public function testBuilderPartitionsEngine($query)
     {
@@ -289,9 +307,9 @@ EOT
     {
         $stmt = new CreateStatement();
 
-        $stmt->options = new OptionsArray(array('TRIGGER'));
+        $stmt->options = new OptionsArray(['TRIGGER']);
         $stmt->name = new Expression('ins_sum');
-        $stmt->entityOptions = new OptionsArray(array('BEFORE', 'INSERT'));
+        $stmt->entityOptions = new OptionsArray(['BEFORE', 'INSERT']);
         $stmt->table = new Expression('account');
         $stmt->body = 'SET @sum = @sum + NEW.amount';
 
@@ -331,7 +349,7 @@ EOT
             'CREATE TABLE new_tbl SELECT * FROM orig_tbl'
         );
         $this->assertEquals(
-            'CREATE TABLE new_tbl SELECT  * FROM orig_tbl ',
+            'CREATE TABLE new_tbl SELECT * FROM orig_tbl',
             $parser->statements[0]->build()
         );
     }

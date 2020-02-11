@@ -1,9 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Components;
 
 use PhpMyAdmin\SqlParser\Components\CreateDefinition;
 use PhpMyAdmin\SqlParser\Parser;
+use PhpMyAdmin\SqlParser\Statements\CreateStatement;
 use PhpMyAdmin\SqlParser\Tests\TestCase;
 
 class CreateDefinitionTest extends TestCase
@@ -58,9 +60,27 @@ class CreateDefinitionTest extends TestCase
             'CONSTRAINT `fk_payment_customer` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON UPDATE CASCADE' .
             ') ENGINE=InnoDB"'
         );
+        $this->assertInstanceOf(CreateStatement::class, $parser->statements[0]);
         $this->assertEquals(
             'CONSTRAINT `fk_payment_customer` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON UPDATE CASCADE',
             CreateDefinition::build($parser->statements[0]->fields[1])
+        );
+    }
+
+    public function testBuild2()
+    {
+        $parser = new Parser(
+            'CREATE TABLE `payment` (' .
+            '-- snippet' . "\n" .
+            '`customer_id` smallint(5) unsigned NOT NULL,' .
+            '`customer_data` longtext CHARACTER SET utf8mb4 CHARSET utf8mb4_bin NOT NULL CHECK (json_valid(customer_data)),' .
+            'CONSTRAINT `fk_payment_customer` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON UPDATE CASCADE' .
+            ') ENGINE=InnoDB"'
+        );
+        $this->assertInstanceOf(CreateStatement::class, $parser->statements[0]);
+        $this->assertEquals(
+            'CONSTRAINT `fk_payment_customer` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON UPDATE CASCADE',
+            CreateDefinition::build($parser->statements[0]->fields[2])
         );
     }
 }

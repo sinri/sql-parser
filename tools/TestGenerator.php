@@ -1,18 +1,16 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tools;
 
 require_once '../vendor/autoload.php';
 
+use Exception;
 use PhpMyAdmin\SqlParser\Lexer;
 use PhpMyAdmin\SqlParser\Parser;
 
 /**
  * Used for test generation.
- *
- * @category   Tests
- *
- * @license    https://www.gnu.org/licenses/gpl-2.0.txt GPL-2.0+
  */
 class TestGenerator
 {
@@ -39,21 +37,21 @@ class TestGenerator
          *
          * @var Parser
          */
-        $parser = ($type === 'parser') ? new Parser($lexer->list) : null;
+        $parser = $type === 'parser' ? new Parser($lexer->list) : null;
 
         /**
          * Lexer's errors.
          *
          * @var array
          */
-        $lexerErrors = array();
+        $lexerErrors = [];
 
         /**
          * Parser's errors.
          *
          * @var array
          */
-        $parserErrors = array();
+        $parserErrors = [];
 
         // Both the lexer and the parser construct exception for errors.
         // Usually, exceptions contain a full stack trace and other details that
@@ -61,30 +59,39 @@ class TestGenerator
         // The code below extracts only the relevant information.
 
         // Extracting lexer's errors.
-        if (!empty($lexer->errors)) {
+        if (! empty($lexer->errors)) {
             foreach ($lexer->errors as $err) {
-                $lexerErrors[] = array($err->getMessage(), $err->ch, $err->pos, $err->getCode());
+                $lexerErrors[] = [
+                    $err->getMessage(),
+                    $err->ch,
+                    $err->pos,
+                    $err->getCode(),
+                ];
             }
-            $lexer->errors = array();
+            $lexer->errors = [];
         }
 
         // Extracting parser's errors.
-        if (!empty($parser->errors)) {
+        if (! empty($parser->errors)) {
             foreach ($parser->errors as $err) {
-                $parserErrors[] = array($err->getMessage(), $err->token, $err->getCode());
+                $parserErrors[] = [
+                    $err->getMessage(),
+                    $err->token,
+                    $err->getCode(),
+                ];
             }
-            $parser->errors = array();
+            $parser->errors = [];
         }
 
-        return array(
+        return [
             'query' => $query,
             'lexer' => $lexer,
             'parser' => $parser,
-            'errors' => array(
+            'errors' => [
                 'lexer' => $lexerErrors,
                 'parser' => $parserErrors,
-            ),
-        );
+            ],
+        ];
     }
 
     /**
@@ -100,8 +107,8 @@ class TestGenerator
     public static function build($type, $input, $output, $debug = null)
     {
         // Support query types: `lexer` / `parser`.
-        if (!in_array($type, array('lexer', 'parser'))) {
-            throw new \Exception('Unknown test type (expected `lexer` or `parser`).');
+        if (! in_array($type, ['lexer', 'parser'])) {
+            throw new Exception('Unknown test type (expected `lexer` or `parser`).');
         }
 
         /**
@@ -113,7 +120,7 @@ class TestGenerator
 
         // There is no point in generating a test without a query.
         if (empty($query)) {
-            throw new \Exception('No input query specified.');
+            throw new Exception('No input query specified.');
         }
 
         $test = static::generate($query, $type);
@@ -122,7 +129,7 @@ class TestGenerator
         file_put_contents($output, serialize($test));
 
         // Dumping test's data in human readable format too (if required).
-        if (!empty($debug)) {
+        if (! empty($debug)) {
             file_put_contents($debug, print_r($test, true));
         }
     }
@@ -147,15 +154,15 @@ class TestGenerator
             // Appending the filename to directories.
             $inputFile = $input . '/' . $file;
             $outputFile = $output . '/' . $file;
-            $debugFile = ($debug !== null) ? $debug . '/' . $file : null;
+            $debugFile = $debug !== null ? $debug . '/' . $file : null;
 
             if (is_dir($inputFile)) {
                 // Creating required directories to maintain the structure.
                 // Ignoring errors if the folder structure exists already.
-                if (!is_dir($outputFile)) {
+                if (! is_dir($outputFile)) {
                     mkdir($outputFile);
                 }
-                if (($debug !== null) && (!is_dir($debugFile))) {
+                if (($debug !== null) && (! is_dir($debugFile))) {
                     mkdir($debugFile);
                 }
 
@@ -170,7 +177,7 @@ class TestGenerator
                 }
 
                 // Building the test.
-                if (!file_exists($outputFile)) {
+                if (! file_exists($outputFile)) {
                     sprintf("Building test for %s...\n", $inputFile);
                     static::build(
                         strpos($inputFile, 'lex') !== false ? 'lexer' : 'parser',
@@ -194,7 +201,6 @@ class TestGenerator
 //
 // Input data must be in the `../tests/data` folder.
 // The output will be generated in the same `../tests/data` folder.
-//
 if (count($argv) >= 3) {
     // Extracting directories' name from command line and trimming unnecessary
     // slashes at the end.
@@ -203,12 +209,12 @@ if (count($argv) >= 3) {
     $debug = empty($argv[3]) ? null : rtrim($argv[3], '/');
 
     // Checking if all directories are valid.
-    if (!is_dir($input)) {
-        throw new \Exception('The input directory does not exist.');
-    } elseif (!is_dir($output)) {
-        throw new \Exception('The output directory does not exist.');
-    } elseif (($debug !== null) && (!is_dir($debug))) {
-        throw new \Exception('The debug directory does not exist.');
+    if (! is_dir($input)) {
+        throw new Exception('The input directory does not exist.');
+    } elseif (! is_dir($output)) {
+        throw new Exception('The output directory does not exist.');
+    } elseif (($debug !== null) && (! is_dir($debug))) {
+        throw new Exception('The debug directory does not exist.');
     }
 
     // Finally, building the tests.

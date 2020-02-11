@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Parser;
 
@@ -7,25 +8,25 @@ use PhpMyAdmin\SqlParser\Tests\TestCase;
 class PurgeStatementTest extends TestCase
 {
     /**
-     * @dataProvider testPurgeProvider
-     *
      * @param mixed $test
+     *
+     * @dataProvider purgeProvider
      */
     public function testPurge($test)
     {
         $this->runParserTest($test);
     }
 
-    public function testPurgeProvider()
+    public function purgeProvider()
     {
-        return array(
-            array('parser/parsePurge'),
-            array('parser/parsePurge2'),
-            array('parser/parsePurge3'),
-            array('parser/parsePurge4'),
-            array('parser/parsePurgeErr'),
-            array('parser/parsePurgeErr2'),
-            array('parser/parsePurgeErr3'),
-        );
+        return [
+            ['parser/parsePurge'],
+            ['parser/parsePurge2'],
+            ['parser/parsePurge3'],
+            ['parser/parsePurge4'],
+            ['parser/parsePurgeErr'],
+            ['parser/parsePurgeErr2'],
+            ['parser/parsePurgeErr3'],
+        ];
     }
 }

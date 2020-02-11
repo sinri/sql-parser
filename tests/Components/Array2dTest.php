@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Components;
 
@@ -13,7 +14,10 @@ class Array2dTest extends TestCase
         $parser = new Parser();
         $arrays = Array2d::parse($parser, $this->getTokensList('(1, 2) +'));
         $this->assertEquals(
-            array(1, 2),
+            [
+                1,
+                2,
+            ],
             $arrays[0]->values
         );
     }
@@ -31,13 +35,20 @@ class Array2dTest extends TestCase
     {
         $parser = new Parser();
         Array2d::parse($parser, $this->getTokensList('(1, 2 +'));
-        // TODO: Assert errors.
+
+        $this->markTestIncomplete(
+            'This test has not been implemented yet.'
+        );
     }
 
     public function testParseErr2()
     {
         $parser = new Parser();
         Array2d::parse($parser, $this->getTokensList('(1, 2 TABLE'));
+
+        $this->markTestIncomplete(
+            'This test has not been implemented yet.'
+        );
     }
 
     public function testParseErr3()

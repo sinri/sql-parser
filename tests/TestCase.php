@@ -1,11 +1,13 @@
 <?php
-
 /**
  * Bootstrap for tests.
  */
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests;
 
+use PhpMyAdmin\SqlParser\Exceptions\LexerException;
+use PhpMyAdmin\SqlParser\Exceptions\ParserException;
 use PhpMyAdmin\SqlParser\Lexer;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\TokensList;
@@ -15,10 +17,6 @@ $GLOBALS['lang'] = 'en';
 
 /**
  * Implements useful methods for testing.
- *
- * @category   Tests
- *
- * @license    https://www.gnu.org/licenses/gpl-2.0.txt GPL-2.0+
  */
 abstract class TestCase extends BaseTestCase
 {
@@ -45,11 +43,21 @@ abstract class TestCase extends BaseTestCase
      */
     public function getErrorsAsArray($obj)
     {
-        $ret = array();
+        $ret = [];
+        /** @var LexerException|ParserException $err */
         foreach ($obj->errors as $err) {
             $ret[] = $obj instanceof Lexer
-                ? array($err->getMessage(), $err->ch, $err->pos, $err->getCode())
-                : array($err->getMessage(), $err->token, $err->getCode());
+                ? [
+                    $err->getMessage(),
+                    $err->ch,
+                    $err->pos,
+                    $err->getCode(),
+                ]
+                : [
+                    $err->getMessage(),
+                    $err->token,
+                    $err->getCode(),
+                ];
         }
 
         return $ret;
@@ -92,14 +100,14 @@ abstract class TestCase extends BaseTestCase
         // Lexer.
         $lexer = new Lexer($data['query']);
         $lexerErrors = $this->getErrorsAsArray($lexer);
-        $lexer->errors = array();
+        $lexer->errors = [];
 
         // Parser.
         $parser = empty($data['parser']) ? null : new Parser($lexer->list);
-        $parserErrors = array();
+        $parserErrors = [];
         if ($parser !== null) {
             $parserErrors = $this->getErrorsAsArray($parser);
-            $parser->errors = array();
+            $parser->errors = [];
         }
 
         // Testing objects.

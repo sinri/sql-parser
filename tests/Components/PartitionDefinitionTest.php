@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Components;
 
@@ -18,5 +19,17 @@ class PartitionDefinitionTest extends TestCase
         $this->assertEquals('p0', $component->name);
         $this->assertEquals('LESS THAN', $component->type);
         $this->assertEquals('(1990)', $component->expr->expr);
+    }
+
+    public function testParseNameWithUnderscore()
+    {
+        $component = PartitionDefinition::parse(
+            new Parser(),
+            $this->getTokensList('PARTITION 2017_12 VALUES LESS THAN (\'2018-01-01 00:00:00\') ENGINE = MyISAM')
+        );
+        $this->assertFalse($component->isSubpartition);
+        $this->assertEquals('2017_12', $component->name);
+        $this->assertEquals('LESS THAN', $component->type);
+        $this->assertEquals('(\'2018-01-01 00:00:00\')', $component->expr->expr);
     }
 }

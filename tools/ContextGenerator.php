@@ -1,15 +1,14 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tools;
+
+use Exception;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 /**
  * Used for context generation.
- *
- * @category   Contexts
- *
- * @license    https://www.gnu.org/licenses/gpl-2.0.txt GPL-2.0+
  */
 class ContextGenerator
 {
@@ -18,19 +17,19 @@ class ContextGenerator
      *
      * @var array
      */
-    public static $LABELS_FLAGS = array(
+    public static $LABELS_FLAGS = [
         '(R)' => 2, // reserved
         '(D)' => 8, // data type
         '(K)' => 16, // keyword
         '(F)' => 32, // function name
-    );
+    ];
 
     /**
      * Documentation links for each context.
      *
      * @var array
      */
-    public static $LINKS = array(
+    public static $LINKS = [
         'MySql50000' => 'https://dev.mysql.com/doc/refman/5.0/en/keywords.html',
         'MySql50100' => 'https://dev.mysql.com/doc/refman/5.1/en/keywords.html',
         'MySql50500' => 'https://dev.mysql.com/doc/refman/5.5/en/keywords.html',
@@ -41,7 +40,7 @@ class ContextGenerator
         'MariaDb100100' => 'https://mariadb.com/kb/en/the-mariadb-library/reserved-words/',
         'MariaDb100200' => 'https://mariadb.com/kb/en/the-mariadb-library/reserved-words/',
         'MariaDb100300' => 'https://mariadb.com/kb/en/the-mariadb-library/reserved-words/',
-    );
+    ];
 
     /**
      * The template of a context.
@@ -56,7 +55,6 @@ class ContextGenerator
      */
     const TEMPLATE =
         '<?php' . "\n" .
-        '' . "\n" .
         '/**' . "\n" .
         ' * Context for %1$s.' . "\n" .
         ' *' . "\n" .
@@ -64,6 +62,7 @@ class ContextGenerator
         ' *' . "\n" .
         ' * @see %3$s' . "\n" .
         ' */' . "\n" .
+        'declare(strict_types=1);' . "\n" .
         '' . "\n" .
         'namespace PhpMyAdmin\\SqlParser\\Contexts;' . "\n" .
         '' . "\n" .
@@ -90,9 +89,9 @@ class ContextGenerator
         '     *' . "\n" .
         '     * @var array' . "\n" .
         '     */' . "\n" .
-        '    public static $KEYWORDS = array(' . "\n" .
+        '    public static $KEYWORDS = [' . "\n" .
         '%4$s' .
-        '    );' . "\n" .
+        '    ];' . "\n" .
         '}' . "\n";
 
     /**
@@ -124,12 +123,12 @@ class ContextGenerator
      */
     public static function readWords(array $files)
     {
-        $words = array();
+        $words = [];
         foreach ($files as $file) {
             $words = array_merge($words, file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
         }
 
-        $types = array();
+        $types = [];
 
         for ($i = 0, $count = count($words); $i !== $count; ++$i) {
             $type = 1;
@@ -155,21 +154,21 @@ class ContextGenerator
             }
 
             $value = strtoupper($value);
-            if (!isset($types[$value])) {
+            if (! isset($types[$value])) {
                 $types[$value] = $type;
             } else {
                 $types[$value] |= $type;
             }
         }
 
-        $ret = array();
+        $ret = [];
         foreach ($types as $word => $type) {
             $len = strlen($word);
-            if (!isset($ret[$type])) {
-                $ret[$type] = array();
+            if (! isset($ret[$type])) {
+                $ret[$type] = [];
             }
-            if (!isset($ret[$type][$len])) {
-                $ret[$type][$len] = array();
+            if (! isset($ret[$type][$len])) {
+                $ret[$type][$len] = [];
             }
             $ret[$type][$len][] = $word;
         }
@@ -254,7 +253,7 @@ class ContextGenerator
     public static function formatName($name)
     {
         /* Split name and version */
-        $parts = array();
+        $parts = [];
         if (preg_match('/([^[0-9]*)([0-9]*)/', $name, $parts) === false) {
             return $name;
         }
@@ -334,18 +333,18 @@ class ContextGenerator
         file_put_contents(
             $output . '/' . $class . '.php',
             static::generate(
-                array(
+                [
                     'name' => $formattedName,
                     'class' => $class,
                     'link' => static::$LINKS[$name],
                     'keywords' => static::readWords(
-                        array(
+                        [
                             $directory . '_common.txt',
                             $directory . '_functions' . $file,
                             $directory . $file,
-                        )
+                        ]
                     ),
-                )
+                ]
             )
         );
     }
@@ -381,7 +380,6 @@ class ContextGenerator
 //
 // Input data must be in the `data` folder.
 // The output will be generated in the same `data` folder.
-//
 if (count($argv) >= 3) {
     // Extracting directories' name from command line and trimming unnecessary
     // slashes at the end.
@@ -389,10 +387,10 @@ if (count($argv) >= 3) {
     $output = rtrim($argv[2], '/');
 
     // Checking if all directories are valid.
-    if (!is_dir($input)) {
-        throw new \Exception('The input directory does not exist.');
-    } elseif (!is_dir($output)) {
-        throw new \Exception('The output directory does not exist.');
+    if (! is_dir($input)) {
+        throw new Exception('The input directory does not exist.');
+    } elseif (! is_dir($output)) {
+        throw new Exception('The output directory does not exist.');
     }
 
     // Finally, building the tests.

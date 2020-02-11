@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Builder;
 
@@ -15,7 +16,7 @@ class StatementTest extends TestCase
     {
         $stmt = new SelectStatement();
 
-        $stmt->options = new OptionsArray(array('DISTINCT'));
+        $stmt->options = new OptionsArray(['DISTINCT']);
 
         $stmt->expr[] = new Expression('sakila', 'film', 'film_id', 'fid');
         $stmt->expr[] = new Expression('COUNT(film_id)');
@@ -33,7 +34,7 @@ class StatementTest extends TestCase
             'SELECT DISTINCT `sakila`.`film`.`film_id` AS `fid`, COUNT(film_id) ' .
             'FROM `film`, `actor` ' .
             'WHERE film_id > 10 OR actor.age > 25 ' .
-            'LIMIT 10, 1 ',
+            'LIMIT 10, 1',
             (string) $stmt
         );
     }

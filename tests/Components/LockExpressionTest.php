@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Components;
 
@@ -26,10 +27,10 @@ class LockExpressionTest extends TestCase
     }
 
     /**
-     * @dataProvider testParseErrProvider
-     *
      * @param mixed $expr
      * @param mixed $error
+     *
+     * @dataProvider parseErrProvider
      */
     public function testParseErr($expr, $error)
     {
@@ -39,30 +40,30 @@ class LockExpressionTest extends TestCase
         $this->assertEquals($errors[0][0], $error);
     }
 
-    public function testParseErrProvider()
+    public function parseErrProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 'table1 AS t1',
                 'Unexpected end of LOCK expression.',
-            ),
-            array(
+            ],
+            [
                 'table1 AS t1 READ WRITE',
                 'Unexpected keyword.',
-            ),
-            array(
+            ],
+            [
                 'table1 AS t1 READ 2',
                 'Unexpected token.',
-            ),
-        );
+            ],
+        ];
     }
 
     public function testBuild()
     {
-        $component = array(
+        $component = [
             LockExpression::parse(new Parser(), $this->getTokensList('table1 AS t1 READ LOCAL')),
             LockExpression::parse(new Parser(), $this->getTokensList('table2 LOW_PRIORITY WRITE')),
-        );
+        ];
         $this->assertEquals(
             LockExpression::build($component),
             'table1 AS `t1` READ LOCAL, table2 LOW_PRIORITY WRITE'

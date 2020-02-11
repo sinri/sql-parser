@@ -1,9 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Misc;
 
 use PhpMyAdmin\SqlParser\Tests\TestCase;
 use PhpMyAdmin\SqlParser\UtfString;
+use Throwable;
 
 class UtfStringTest extends TestCase
 {
@@ -36,22 +38,18 @@ class UtfStringTest extends TestCase
         $this->assertNull($str[static::TEST_PHRASE_LEN]);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Not implemented.
-     */
     public function testSet()
     {
+        $this->expectExceptionMessage('Not implemented.');
+        $this->expectException(Throwable::class);
         $str = new UtfString('');
         $str[0] = 'a';
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Not implemented.
-     */
     public function testUnset()
     {
+        $this->expectExceptionMessage('Not implemented.');
+        $this->expectException(Throwable::class);
         $str = new UtfString('');
         unset($str[0]);
     }
@@ -86,11 +84,11 @@ class UtfStringTest extends TestCase
     /**
      * Test access to string.
      *
-     * @dataProvider utf8_strings
-     *
      * @param mixed $text
      * @param mixed $pos10
      * @param mixed $pos20
+     *
+     * @dataProvider utf8Strings
      */
     public function testAccess($text, $pos10, $pos20)
     {
@@ -100,21 +98,29 @@ class UtfStringTest extends TestCase
         $this->assertEquals($pos10, $str->offsetGet(10));
     }
 
-    public function utf8_strings()
+    public function utf8Strings()
     {
-        return array(
-            'ascii' => array(
-                'abcdefghijklmnopqrstuvwxyz', 'k', 'u',
-            ),
-            'unicode' => array(
-                'áéíóúýěřťǔǐǒǎšďȟǰǩľžčǚň', 'ǐ', 'č',
-            ),
-            'emoji' => array(
-                '😂😄😃😀😊😉😍😘😚😗😂👿😮😨😱😠😡😤😖😆😋👯', '😂', '😋',
-            ),
-            'iso' => array(
-                "P\xf8\xed\xb9ern\xec \xbelu\xbbou\xe8k\xfd k\xf3d \xfap\xecl \xef\xe1belsk\xe9 k\xf3dy", null, null,
-            ),
-        );
+        return [
+            'ascii' => [
+                'abcdefghijklmnopqrstuvwxyz',
+                'k',
+                'u',
+            ],
+            'unicode' => [
+                'áéíóúýěřťǔǐǒǎšďȟǰǩľžčǚň',
+                'ǐ',
+                'č',
+            ],
+            'emoji' => [
+                '😂😄😃😀😊😉😍😘😚😗😂👿😮😨😱😠😡😤😖😆😋👯',
+                '😂',
+                '😋',
+            ],
+            'iso' => [
+                "P\xf8\xed\xb9ern\xec \xbelu\xbbou\xe8k\xfd k\xf3d \xfap\xecl \xef\xe1belsk\xe9 k\xf3dy",
+                null,
+                null,
+            ],
+        ];
     }
 }

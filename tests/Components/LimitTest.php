@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Components;
 
@@ -20,20 +21,20 @@ class LimitTest extends TestCase
     }
 
     /**
-     * @dataProvider testParseProvider
-     *
      * @param mixed $test
+     *
+     * @dataProvider parseProvider
      */
     public function testParse($test)
     {
         $this->runParserTest($test);
     }
 
-    public function testParseProvider()
+    public function parseProvider()
     {
-        return array(
-            array('parser/parseLimitErr1'),
-            array('parser/parseLimitErr2'),
-        );
+        return [
+            ['parser/parseLimitErr1'],
+            ['parser/parseLimitErr2'],
+        ];
     }
 }

@@ -1,16 +1,26 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Utils;
 
 use PhpMyAdmin\SqlParser\Tests\TestCase;
+use PhpMyAdmin\SqlParser\Utils\CLI;
 
 class CLITest extends TestCase
 {
     private function getCLI($getopt)
     {
-        $cli = $this->getMockBuilder('PhpMyAdmin\SqlParser\Utils\CLI')->setMethods(array('getopt'))->getMock();
+        $cli = $this->getMockBuilder('PhpMyAdmin\SqlParser\Utils\CLI')->setMethods(['getopt'])->getMock();
         $cli->method('getopt')->willReturn($getopt);
 
+        return $cli;
+    }
+
+    private function getCLIStdIn($input, $getopt)
+    {
+        $cli = $this->getMockBuilder('PhpMyAdmin\SqlParser\Utils\CLI')->setMethods(['getopt', 'readStdin'])->getMock();
+        $cli->method('getopt')->willReturn($getopt);
+        $cli->method('readStdin')->willReturn($input);
         return $cli;
     }
 
@@ -21,19 +31,19 @@ class CLITest extends TestCase
      */
     public function testGetopt()
     {
-        $cli = new \PhpMyAdmin\SqlParser\Utils\CLI();
+        $cli = new CLI();
         $this->assertEquals(
-            $cli->getopt('', array()),
-            array()
+            $cli->getopt('', []),
+            []
         );
     }
 
     /**
-     * @dataProvider highlightParams
-     *
      * @param mixed $getopt
      * @param mixed $output
      * @param mixed $result
+     *
+     * @dataProvider highlightParams
      */
     public function testRunHighlight($getopt, $output, $result)
     {
@@ -44,58 +54,207 @@ class CLITest extends TestCase
 
     public function highlightParams()
     {
-        return array(
-            array(
-                array('q' => 'SELECT 1'),
+        return [
+            [
+                ['q' => 'SELECT 1'],
                 "\x1b[35mSELECT\n    \x1b[92m1\x1b[0m\n",
                 0,
-            ),
-            array(
-                array('query' => 'SELECT 1'),
+            ],
+            [
+                ['query' => 'SELECT 1'],
                 "\x1b[35mSELECT\n    \x1b[92m1\x1b[0m\n",
                 0,
-            ),
-            array(
-                array('q' => 'SELECT /* comment */ 1 /* other */', 'f' => 'text'),
+            ],
+            [
+                [
+                    'q' => 'SELECT /* comment */ 1 /* other */',
+                    'f' => 'text',
+                ],
                 "SELECT\n    /* comment */ 1 /* other */\n",
                 0,
-            ),
-            array(
-                array('q' => 'SELECT 1', 'f' => 'foo'),
+            ],
+            [
+                [
+                    'q' => 'SELECT 1',
+                    'f' => 'foo',
+                ],
                 "ERROR: Invalid value for format!\n",
                 1,
-            ),
-            array(
-                array('q' => 'SELECT 1', 'f' => 'html'),
-                '<span class="sql-reserved">SELECT</span>' . '<br/>' .
+            ],
+            [
+                [
+                    'q' => 'SELECT 1',
+                    'f' => 'html',
+                ],
+                '<span class="sql-reserved">SELECT</span><br/>' .
                 '&nbsp;&nbsp;&nbsp;&nbsp;<span class="sql-number">1</span>' . "\n",
                 0,
-            ),
-            array(
-                array('h' => true),
-                'Usage: highlight-query --query SQL [--format html|cli|text]' . "\n",
+            ],
+            [
+                ['h' => true],
+                'Usage: highlight-query --query SQL [--format html|cli|text]' . "\n" .
+                '       cat file.sql | highlight-query' . "\n",
                 0,
-            ),
-            array(
-                array(),
+            ],
+            [
+                [],
                 'ERROR: Missing parameters!' . "\n" .
-                'Usage: highlight-query --query SQL [--format html|cli|text]' . "\n",
+                'Usage: highlight-query --query SQL [--format html|cli|text]' . "\n" .
+                '       cat file.sql | highlight-query' . "\n",
                 1,
-            ),
-            array(
+            ],
+            [
                 false,
                 '',
                 1,
-            ),
-        );
+            ],
+        ];
     }
 
+
     /**
-     * @dataProvider lintParams
+     * @dataProvider highlightParamsStdIn
      *
+     * @param mixed $input
      * @param mixed $getopt
      * @param mixed $output
      * @param mixed $result
+     */
+    public function testRunHighlightStdIn($input, $getopt, $output, $result)
+    {
+        $cli = $this->getCLIStdIn($input, $getopt);
+        $this->expectOutputString($output);
+        $this->assertEquals($result, $cli->runHighlight());
+    }
+
+    public function highlightParamsStdIn()
+    {
+        return [
+            [
+                'SELECT 1',
+                [],
+                "\x1b[35mSELECT\n    \x1b[92m1\x1b[0m\n",
+                0,
+            ],
+            [
+                'SELECT /* comment */ 1 /* other */',
+                [
+                    'f' => 'text',
+                ],
+                "SELECT\n    /* comment */ 1 /* other */\n",
+                0,
+            ],
+            [
+                'SELECT 1',
+                [
+                    'f' => 'foo',
+                ],
+                "ERROR: Invalid value for format!\n",
+                1,
+            ],
+            [
+                'SELECT 1',
+                [
+                    'f' => 'html',
+                ],
+                '<span class="sql-reserved">SELECT</span>' . '<br/>' .
+                '&nbsp;&nbsp;&nbsp;&nbsp;<span class="sql-number">1</span>' . "\n",
+                0,
+            ],
+            [
+                '',
+                ['h' => true],
+                'Usage: highlight-query --query SQL [--format html|cli|text]' . "\n" .
+                '       cat file.sql | highlight-query' . "\n",
+                0,
+            ],
+            [
+                '',
+                [],
+                'ERROR: Missing parameters!' . "\n" .
+                'Usage: highlight-query --query SQL [--format html|cli|text]' . "\n" .
+                '       cat file.sql | highlight-query' . "\n",
+                1,
+            ],
+            [
+                '',
+                false,
+                '',
+                1,
+            ],
+        ];
+    }
+
+    /**
+     * @param mixed $input
+     * @param mixed $getopt
+     * @param mixed $output
+     * @param mixed $result
+     *
+     * @dataProvider lintParamsStdIn
+     */
+    public function testRunLintFromStdIn($input, $getopt, $output, $result)
+    {
+        $cli = $this->getCLIStdIn($input, $getopt);
+        $this->expectOutputString($output);
+        $this->assertEquals($result, $cli->runLint());
+    }
+
+    public function lintParamsStdIn()
+    {
+        return [
+            [
+                'SELECT 1',
+                [],
+                '',
+                0,
+            ],
+            [
+                'SELECT SELECT',
+                [],
+                '#1: An expression was expected. (near "SELECT" at position 7)' . "\n" .
+                '#2: This type of clause was previously parsed. (near "SELECT" at position 7)' . "\n" .
+                '#3: An expression was expected. (near "" at position 0)' . "\n",
+                10,
+            ],
+            [
+                'SELECT SELECT',
+                ['c' => 'MySql80000'],
+                '#1: An expression was expected. (near "SELECT" at position 7)' . "\n" .
+                '#2: This type of clause was previously parsed. (near "SELECT" at position 7)' . "\n" .
+                '#3: An expression was expected. (near "" at position 0)' . "\n",
+                10,
+            ],
+            [
+                '',
+                [],
+                'ERROR: Missing parameters!' . "\n" .
+                'Usage: lint-query --query SQL' . "\n" .
+                '       cat file.sql | lint-query' . "\n",
+                1,
+            ],
+            [
+                '',
+                ['h' => true],
+                'Usage: lint-query --query SQL' . "\n" .
+                '       cat file.sql | lint-query' . "\n",
+                0,
+            ],
+            [
+                '',
+                false,
+                '',
+                1,
+            ],
+        ];
+    }
+
+    /**
+     * @param mixed $getopt
+     * @param mixed $output
+     * @param mixed $result
+     *
+     * @dataProvider lintParams
      */
     public function testRunLint($getopt, $output, $result)
     {
@@ -106,49 +265,61 @@ class CLITest extends TestCase
 
     public function lintParams()
     {
-        return array(
-            array(
-                array('q' => 'SELECT 1'),
+        return [
+            [
+                ['q' => 'SELECT 1'],
                 '',
                 0,
-            ),
-            array(
-                array('query' => 'SELECT 1'),
+            ],
+            [
+                ['query' => 'SELECT 1'],
                 '',
                 0,
-            ),
-            array(
-                array('q' => 'SELECT SELECT'),
+            ],
+            [
+                ['q' => 'SELECT SELECT'],
                 '#1: An expression was expected. (near "SELECT" at position 7)' . "\n" .
                 '#2: This type of clause was previously parsed. (near "SELECT" at position 7)' . "\n" .
                 '#3: An expression was expected. (near "" at position 0)' . "\n",
                 10,
-            ),
-            array(
-                array('h' => true),
-                'Usage: lint-query --query SQL' . "\n",
+            ],
+            [
+                [
+                    'q' => 'SELECT SELECT',
+                    'c' => 'MySql80000',
+                ],
+                '#1: An expression was expected. (near "SELECT" at position 7)' . "\n" .
+                '#2: This type of clause was previously parsed. (near "SELECT" at position 7)' . "\n" .
+                '#3: An expression was expected. (near "" at position 0)' . "\n",
+                10,
+            ],
+            [
+                ['h' => true],
+                'Usage: lint-query --query SQL' . "\n" .
+                '       cat file.sql | lint-query' . "\n",
                 0,
-            ),
-            array(
-                array(),
+            ],
+            [
+                [],
                 'ERROR: Missing parameters!' . "\n" .
-                'Usage: lint-query --query SQL' . "\n",
+                'Usage: lint-query --query SQL' . "\n" .
+                '       cat file.sql | lint-query' . "\n",
                 1,
-            ),
-            array(
+            ],
+            [
                 false,
                 '',
                 1,
-            ),
-        );
+            ],
+        ];
     }
 
     /**
-     * @dataProvider tokenizeParams
-     *
      * @param mixed $getopt
      * @param mixed $output
      * @param mixed $result
+     *
+     * @dataProvider tokenizeParams
      */
     public function testRunTokenize($getopt, $output, $result)
     {
@@ -159,6 +330,60 @@ class CLITest extends TestCase
 
     public function tokenizeParams()
     {
+        $result = "[TOKEN 0]\nType = 1\nFlags = 3\nValue = 'SELECT'\nToken = 'SELECT'\n\n"
+            . "[TOKEN 1]\nType = 3\nFlags = 0\nValue = ' '\nToken = ' '\n\n"
+            . "[TOKEN 2]\nType = 6\nFlags = 0\nValue = 1\nToken = '1'\n\n"
+            . "[TOKEN 3]\nType = 9\nFlags = 0\nValue = NULL\nToken = NULL\n\n";
+
+        return [
+            [
+                ['q' => 'SELECT 1'],
+                $result,
+                0,
+            ],
+            [
+                ['query' => 'SELECT 1'],
+                $result,
+                0,
+            ],
+            [
+                ['h' => true],
+                'Usage: tokenize-query --query SQL' . "\n" .
+                '       cat file.sql | tokenize-query' . "\n",
+                0,
+            ],
+            [
+                [],
+                'ERROR: Missing parameters!' . "\n" .
+                'Usage: tokenize-query --query SQL' . "\n" .
+                '       cat file.sql | tokenize-query' . "\n",
+                1,
+            ],
+            [
+                false,
+                '',
+                1,
+            ],
+        ];
+    }
+
+    /**
+     * @param mixed $input
+     * @param mixed $getopt
+     * @param mixed $output
+     * @param mixed $result
+     *
+     * @dataProvider tokenizeParamsStdIn
+     */
+    public function testRunTokenizeStdIn($input, $getopt, $output, $result)
+    {
+        $cli = $this->getCLIStdIn($input, $getopt);
+        $this->expectOutputString($output);
+        $this->assertEquals($result, $cli->runTokenize());
+    }
+
+    public function tokenizeParamsStdIn()
+    {
         $result = (
             "[TOKEN 0]\nType = 1\nFlags = 3\nValue = 'SELECT'\nToken = 'SELECT'\n\n"
             . "[TOKEN 1]\nType = 3\nFlags = 0\nValue = ' '\nToken = ' '\n\n"
@@ -166,33 +391,78 @@ class CLITest extends TestCase
             . "[TOKEN 3]\nType = 9\nFlags = 0\nValue = NULL\nToken = NULL\n\n"
         );
 
-        return array(
-            array(
-                array('q' => 'SELECT 1'),
+        return [
+            [
+                'SELECT 1',
+                [],
                 $result,
                 0,
-            ),
-            array(
-                array('query' => 'SELECT 1'),
-                $result,
+            ],
+            [
+                '',
+                ['h' => true],
+                'Usage: tokenize-query --query SQL' . "\n" .
+                '       cat file.sql | tokenize-query' . "\n",
                 0,
-            ),
-            array(
-                array('h' => true),
-                'Usage: tokenize-query --query SQL' . "\n",
-                0,
-            ),
-            array(
-                array(),
+            ],
+            [
+                '',
+                [],
                 'ERROR: Missing parameters!' . "\n" .
-                'Usage: tokenize-query --query SQL' . "\n",
+                'Usage: tokenize-query --query SQL' . "\n" .
+                '       cat file.sql | tokenize-query' . "\n",
                 1,
-            ),
-            array(
+            ],
+            [
+                '',
                 false,
                 '',
                 1,
-            ),
-        );
+            ],
+        ];
+    }
+
+    /**
+     * @param string $cmd
+     * @param int    $result
+     *
+     * @dataProvider stdinParams
+     */
+    public function testStdinPipe($cmd, $result)
+    {
+        exec($cmd, $out, $ret);
+        $this->assertSame($result, $ret);
+    }
+
+    public function stdinParams()
+    {
+        $binPath = PHP_BINARY . ' ' . dirname(__DIR__, 2) . '/bin/';
+
+        return [
+            [
+                'echo "SELECT 1" | ' . $binPath . 'highlight-query',
+                0,
+            ],
+            [
+                'echo "invalid query" | ' . $binPath . 'highlight-query',
+                0,
+            ],
+            [
+                'echo "SELECT 1" | ' . $binPath . 'lint-query',
+                0,
+            ],
+            [
+                'echo "invalid query" | ' . $binPath . 'lint-query',
+                10,
+            ],
+            [
+                'echo "SELECT 1" | ' . $binPath . 'tokenize-query',
+                0,
+            ],
+            [
+                'echo "invalid query" | ' . $binPath . 'tokenize-query',
+                0,
+            ],
+        ];
     }
 }

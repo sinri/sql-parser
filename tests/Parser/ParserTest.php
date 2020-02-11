@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Parser;
 
@@ -11,22 +12,22 @@ use PhpMyAdmin\SqlParser\TokensList;
 class ParserTest extends TestCase
 {
     /**
-     * @dataProvider testParseProvider
-     *
      * @param mixed $test
+     *
+     * @dataProvider parseProvider
      */
     public function testParse($test)
     {
         $this->runParserTest($test);
     }
 
-    public function testParseProvider()
+    public function parseProvider()
     {
-        return array(
-            array('parser/parse'),
-            array('parser/parse2'),
-            array('parser/parseDelimiter'),
-        );
+        return [
+            ['parser/parse'],
+            ['parser/parse2'],
+            ['parser/parseDelimiter'],
+        ];
     }
 
     public function testUnrecognizedStatement()
@@ -60,20 +61,18 @@ class ParserTest extends TestCase
 
         $this->assertEquals(
             $parser->errors,
-            array(
+            [
                 new ParserException('error #1', new Token('foo'), 1),
                 new ParserException('error #2', new Token('bar'), 2),
-            )
+            ]
         );
     }
 
-    /**
-     * @expectedException \PhpMyAdmin\SqlParser\Exceptions\ParserException
-     * @expectedExceptionMessage strict error
-     * @expectedExceptionCode 3
-     */
     public function testErrorStrict()
     {
+        $this->expectExceptionCode(3);
+        $this->expectExceptionMessage('strict error');
+        $this->expectException(ParserException::class);
         $parser = new Parser(new TokensList());
         $parser->strict = true;
 

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Components;
 
@@ -12,10 +13,10 @@ class OrderKeywordTest extends TestCase
     {
         $this->assertEquals(
             OrderKeyword::build(
-                array(
+                [
                     new OrderKeyword(new Expression('a'), 'ASC'),
                     new OrderKeyword(new Expression('b'), 'DESC'),
-                )
+                ]
             ),
             'a ASC, b DESC'
         );

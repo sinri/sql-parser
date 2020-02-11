@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Utils;
 
@@ -9,10 +10,10 @@ use PhpMyAdmin\SqlParser\Utils\Query;
 class QueryTest extends TestCase
 {
     /**
-     * @dataProvider testGetFlagsProvider
-     *
      * @param mixed $query
      * @param mixed $expected
+     *
+     * @dataProvider getFlagsProvider
      */
     public function testGetFlags($query, $expected)
     {
@@ -23,259 +24,259 @@ class QueryTest extends TestCase
         );
     }
 
-    public function testGetFlagsProvider()
+    public function getFlagsProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 'ALTER TABLE DROP col',
-                array(
+                [
                     'reload' => true,
                     'querytype' => 'ALTER',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'CALL test()',
-                array(
+                [
                     'is_procedure' => true,
                     'querytype' => 'CALL',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'CREATE TABLE tbl (id INT)',
-                array(
+                [
                     'reload' => true,
                     'querytype' => 'CREATE',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'CHECK TABLE tbl',
-                array(
+                [
                     'is_maint' => true,
                     'querytype' => 'CHECK',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'DELETE FROM tbl',
-                array(
+                [
                     'is_affected' => true,
                     'is_delete' => true,
                     'querytype' => 'DELETE',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'DROP VIEW v',
-                array(
+                [
                     'reload' => true,
                     'querytype' => 'DROP',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'DROP DATABASE db',
-                array(
+                [
                     'drop_database' => true,
                     'reload' => true,
                     'querytype' => 'DROP',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'EXPLAIN tbl',
-                array(
+                [
                     'is_explain' => true,
                     'querytype' => 'EXPLAIN',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'LOAD DATA INFILE \'/tmp/test.txt\' INTO TABLE test',
-                array(
+                [
                     'is_affected' => true,
                     'is_insert' => true,
                     'querytype' => 'LOAD',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'INSERT INTO tbl VALUES (1)',
-                array(
+                [
                     'is_affected' => true,
                     'is_insert' => true,
                     'querytype' => 'INSERT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'REPLACE INTO tbl VALUES (2)',
-                array(
+                [
                     'is_affected' => true,
                     'is_replace' => true,
                     'is_insert' => true,
                     'querytype' => 'REPLACE',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT 1',
-                array(
+                [
                     'is_select' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT * FROM tbl',
-                array(
+                [
                     'is_select' => true,
                     'select_from' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT DISTINCT * FROM tbl LIMIT 0, 10 ORDER BY id',
-                array(
+                [
                     'distinct' => true,
                     'is_select' => true,
                     'select_from' => true,
                     'limit' => true,
                     'order' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT * FROM actor GROUP BY actor_id',
-                array(
+                [
                     'is_group' => true,
                     'is_select' => true,
                     'select_from' => true,
                     'group' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT col1, col2 FROM table1 PROCEDURE ANALYSE(10, 2000);',
-                array(
+                [
                     'is_analyse' => true,
                     'is_select' => true,
                     'select_from' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT * FROM tbl INTO OUTFILE "/tmp/export.txt"',
-                array(
+                [
                     'is_export' => true,
                     'is_select' => true,
                     'select_from' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT COUNT(id), SUM(id) FROM tbl',
-                array(
+                [
                     'is_count' => true,
                     'is_func' => true,
                     'is_select' => true,
                     'select_from' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT (SELECT "foo")',
-                array(
+                [
                     'is_select' => true,
                     'is_subquery' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT * FROM customer HAVING store_id = 2;',
-                array(
+                [
                     'is_select' => true,
                     'select_from' => true,
                     'is_group' => true,
                     'having' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT * FROM table1 INNER JOIN table2 ON table1.id=table2.id;',
-                array(
+                [
                     'is_select' => true,
                     'select_from' => true,
                     'join' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SHOW CREATE TABLE tbl',
-                array(
+                [
                     'is_show' => true,
                     'querytype' => 'SHOW',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'UPDATE tbl SET id = 1',
-                array(
+                [
                     'is_affected' => true,
                     'querytype' => 'UPDATE',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'ANALYZE TABLE tbl',
-                array(
+                [
                     'is_maint' => true,
                     'querytype' => 'ANALYZE',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'CHECKSUM TABLE tbl',
-                array(
+                [
                     'is_maint' => true,
                     'querytype' => 'CHECKSUM',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'OPTIMIZE TABLE tbl',
-                array(
+                [
                     'is_maint' => true,
                     'querytype' => 'OPTIMIZE',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'REPAIR TABLE tbl',
-                array(
+                [
                     'is_maint' => true,
                     'querytype' => 'REPAIR',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 '(SELECT a FROM t1 WHERE a=10 AND B=1 ORDER BY a LIMIT 10) ' .
                 'UNION ' .
                 '(SELECT a FROM t2 WHERE a=11 AND B=2 ORDER BY a LIMIT 10);',
-                array(
+                [
                     'is_select' => true,
                     'select_from' => true,
                     'limit' => true,
                     'order' => true,
                     'union' => true,
                     'querytype' => 'SELECT',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SELECT * FROM orders AS ord WHERE 1',
-                array(
+                [
                     'querytype' => 'SELECT',
                     'is_select' => true,
                     'select_from' => true,
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'SET NAMES \'latin\'',
-                array(
+                [
                     'querytype' => 'SET',
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
     }
 
     public function testGetAll()
     {
         $this->assertEquals(
-            array(
+            [
                 'distinct' => false,
                 'drop_database' => false,
                 'group' => false,
@@ -303,7 +304,7 @@ class QueryTest extends TestCase
                 'reload' => false,
                 'select_from' => false,
                 'union' => false,
-            ),
+            ],
             Query::getAll('')
         );
 
@@ -313,15 +314,21 @@ class QueryTest extends TestCase
         $this->assertEquals(
             array_merge(
                 Query::getFlags($parser->statements[0], true),
-                array(
+                [
                     'parser' => $parser,
                     'statement' => $parser->statements[0],
-                    'select_expr' => array('*'),
-                    'select_tables' => array(
-                        array('actor', null),
-                        array('film', 'sakila2'),
-                    ),
-                )
+                    'select_expr' => ['*'],
+                    'select_tables' => [
+                        [
+                            'actor',
+                            null,
+                        ],
+                        [
+                            'film',
+                            'sakila2',
+                        ],
+                    ],
+                ]
             ),
             Query::getAll($query)
         );
@@ -331,15 +338,21 @@ class QueryTest extends TestCase
         $this->assertEquals(
             array_merge(
                 Query::getFlags($parser->statements[0], true),
-                array(
+                [
                     'parser' => $parser,
                     'statement' => $parser->statements[0],
-                    'select_expr' => array('*'),
-                    'select_tables' => array(
-                        array('actor', 'sakila'),
-                        array('film', null),
-                    ),
-                )
+                    'select_expr' => ['*'],
+                    'select_tables' => [
+                        [
+                            'actor',
+                            'sakila',
+                        ],
+                        [
+                            'film',
+                            null,
+                        ],
+                    ],
+                ]
             ),
             Query::getAll($query)
         );
@@ -349,14 +362,17 @@ class QueryTest extends TestCase
         $this->assertEquals(
             array_merge(
                 Query::getFlags($parser->statements[0], true),
-                array(
+                [
                     'parser' => $parser,
                     'statement' => $parser->statements[0],
-                    'select_expr' => array(),
-                    'select_tables' => array(
-                        array('actor', 'sakila'),
-                    ),
-                )
+                    'select_expr' => [],
+                    'select_tables' => [
+                        [
+                            'actor',
+                            'sakila',
+                        ],
+                    ],
+                ]
             ),
             Query::getAll($query)
         );
@@ -366,24 +382,24 @@ class QueryTest extends TestCase
         $this->assertEquals(
             array_merge(
                 Query::getFlags($parser->statements[0], true),
-                array(
+                [
                     'parser' => $parser,
                     'statement' => $parser->statements[0],
-                    'select_expr' => array(
+                    'select_expr' => [
                         'CASE WHEN 2 IS NULL THEN "this is true" ELSE "this is false" END',
-                    ),
-                    'select_tables' => array(),
-                )
+                    ],
+                    'select_tables' => [],
+                ]
             ),
             Query::getAll($query)
         );
     }
 
     /**
-     * @dataProvider testGetTablesProvider
-     *
      * @param mixed $query
      * @param mixed $expected
+     *
+     * @dataProvider getTablesProvider
      */
     public function testGetTables($query, $expected)
     {
@@ -394,42 +410,49 @@ class QueryTest extends TestCase
         );
     }
 
-    public function testGetTablesProvider()
+    public function getTablesProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 'INSERT INTO tbl(`id`, `name`) VALUES (1, "Name")',
-                array('`tbl`'),
-            ),
-            array(
+                ['`tbl`'],
+            ],
+            [
                 'UPDATE tbl SET id = 0',
-                array('`tbl`'),
-            ),
-            array(
+                ['`tbl`'],
+            ],
+            [
                 'DELETE FROM tbl WHERE id < 10',
-                array('`tbl`'),
-            ),
-            array(
+                ['`tbl`'],
+            ],
+            [
                 'TRUNCATE tbl',
-                array('`tbl`'),
-            ),
-            array(
+                ['`tbl`'],
+            ],
+            [
                 'DROP VIEW v',
-                array(),
-            ),
-            array(
+                [],
+            ],
+            [
                 'DROP TABLE tbl1, tbl2',
-                array('`tbl1`', '`tbl2`'),
-            ),
-            array(
+                [
+                    '`tbl1`',
+                    '`tbl2`',
+                ],
+            ],
+            [
                 'RENAME TABLE a TO b, c TO d',
-                array('`a`', '`c`'),
-            ),
-        );
+                [
+                    '`a`',
+                    '`c`',
+                ],
+            ],
+        ];
     }
 
     public function testGetClause()
     {
+        /* Assertion 1 */
         $parser = new Parser(
             'SELECT c.city_id, c.country_id ' .
             'FROM `city` ' .
@@ -439,12 +462,96 @@ class QueryTest extends TestCase
             'INTO OUTFILE "/dev/null"'
         );
         $this->assertEquals(
-            'WHERE city_id < 1 ORDER BY city_id ASC',
+            '0, 1 INTO OUTFILE "/dev/null"',
             Query::getClause(
                 $parser->statements[0],
                 $parser->list,
                 'LIMIT',
-                'FROM'
+                0
+            )
+        );
+        // Assert it returns all clauses between FROM and LIMIT
+        $this->assertEquals(
+            'WHERE city_id < 1 ORDER BY city_id ASC',
+            Query::getClause(
+                $parser->statements[0],
+                $parser->list,
+                'FROM',
+                'LIMIT'
+            )
+        );
+        // Assert it returns all clauses between SELECT and LIMIT
+        $this->assertEquals(
+            'FROM `city` WHERE city_id < 1 ORDER BY city_id ASC',
+            Query::getClause(
+                $parser->statements[0],
+                $parser->list,
+                'LIMIT',
+                'SELECT'
+            )
+        );
+
+        /* Assertion 2 */
+        $parser = new Parser(
+            'DELETE FROM `renewal` ' .
+            'WHERE number = "1DB" AND actionDate <= CURRENT_DATE() ' .
+            'ORDER BY id ASC ' .
+            'LIMIT 1'
+        );
+        $this->assertEquals(
+            'number = "1DB" AND actionDate <= CURRENT_DATE()',
+            Query::getClause(
+                $parser->statements[0],
+                $parser->list,
+                'WHERE'
+            )
+        );
+        $this->assertEquals(
+            '1',
+            Query::getClause(
+                $parser->statements[0],
+                $parser->list,
+                'LIMIT'
+            )
+        );
+        $this->assertEquals(
+            'id ASC',
+            Query::getClause(
+                $parser->statements[0],
+                $parser->list,
+                'ORDER BY'
+            )
+        );
+
+        /* Assertion 3 */
+        $parser = new Parser(
+            'UPDATE `renewal` SET `some_column` = 1 ' .
+            'WHERE number = "1DB" AND actionDate <= CURRENT_DATE() ' .
+            'ORDER BY id ASC ' .
+            'LIMIT 1'
+        );
+        $this->assertEquals(
+            'number = "1DB" AND actionDate <= CURRENT_DATE()',
+            Query::getClause(
+                $parser->statements[0],
+                $parser->list,
+                'WHERE'
+            )
+        );
+        $this->assertEquals(
+            '1',
+            Query::getClause(
+                $parser->statements[0],
+                $parser->list,
+                'LIMIT'
+            )
+        );
+        $this->assertEquals(
+            'id ASC',
+            Query::getClause(
+                $parser->statements[0],
+                $parser->list,
+                'ORDER BY'
             )
         );
     }
@@ -492,9 +599,23 @@ class QueryTest extends TestCase
         );
     }
 
+    public function testReplaceNonExistingPart()
+    {
+        $parser = new Parser('ALTER TABLE `sale_mast` OPTIMIZE PARTITION p3');
+        $this->assertEquals(
+            '  ALTER TABLE `sale_mast` OPTIMIZE PARTITION p3',
+            Query::replaceClause(
+                $parser->statements[0],
+                $parser->list,
+                'ORDER BY',
+                ''
+            )
+        );
+    }
+
     public function testReplaceClauses()
     {
-        $this->assertEquals('', Query::replaceClauses(null, null, array()));
+        $this->assertEquals('', Query::replaceClauses(null, null, []));
 
         $parser = new Parser('SELECT *, (SELECT 1) FROM film LIMIT 0, 10;');
         $this->assertEquals(
@@ -502,9 +623,12 @@ class QueryTest extends TestCase
             Query::replaceClauses(
                 $parser->statements[0],
                 $parser->list,
-                array(
-                    array('WHERE', 'WHERE film_id > 0'),
-                )
+                [
+                    [
+                        'WHERE',
+                        'WHERE film_id > 0',
+                    ],
+                ]
             )
         );
 
@@ -525,11 +649,20 @@ class QueryTest extends TestCase
             Query::replaceClauses(
                 $parser->statements[0],
                 $parser->list,
-                array(
-                    array('FROM', 'FROM city AS c'),
-                    array('WHERE', ''),
-                    array('LIMIT', 'LIMIT 0, 10'),
-                )
+                [
+                    [
+                        'FROM',
+                        'FROM city AS c',
+                    ],
+                    [
+                        'WHERE',
+                        '',
+                    ],
+                    [
+                        'LIMIT',
+                        'LIMIT 0, 10',
+                    ],
+                ]
             )
         );
     }

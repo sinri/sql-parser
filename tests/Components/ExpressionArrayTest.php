@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Components;
 
@@ -13,11 +14,11 @@ class ExpressionArrayTest extends TestCase
         $component = ExpressionArray::parse(
             new Parser(),
             $this->getTokensList('(expr)'),
-            array(
+            [
                 'breakOnParentheses' => true,
-            )
+            ]
         );
-        $this->assertEquals(array(), $component);
+        $this->assertEquals([], $component);
     }
 
     public function testParse2()
@@ -25,9 +26,9 @@ class ExpressionArrayTest extends TestCase
         $component = ExpressionArray::parse(
             new Parser(),
             $this->getTokensList('(expr) +'),
-            array(
+            [
                 'parenthesesDelimited' => true,
-            )
+            ]
         );
         $this->assertCount(1, $component);
         $this->assertEquals('(expr)', $component[0]->expr);

@@ -1,11 +1,11 @@
 <?php
-
 /**
  * Defines a context class that is later extended to define other contexts.
  *
  * A context is a collection of keywords, operators and functions used for
  * parsing.
  */
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser;
 
@@ -13,10 +13,6 @@ use PhpMyAdmin\SqlParser\Exceptions\LoaderException;
 
 /**
  * Holds the configuration of the context that is currently used.
- *
- * @category Contexts
- *
- * @license  https://www.gnu.org/licenses/gpl-2.0.txt GPL-2.0+
  */
 abstract class Context
 {
@@ -86,14 +82,14 @@ abstract class Context
      *
      * @var array
      */
-    public static $KEYWORDS = array();
+    public static $KEYWORDS = [];
 
     /**
      * List of operators and their flags.
      *
      * @var array
      */
-    public static $OPERATORS = array(
+    public static $OPERATORS = [
         // Some operators (*, =) may have ambiguous flags, because they depend on
         // the context they are being used in.
         // For example: 1. SELECT * FROM table; # SQL specific (wildcard)
@@ -102,23 +98,43 @@ abstract class Context
         //                 SET @i = 0;
 
         // @see Token::FLAG_OPERATOR_ARITHMETIC
-        '%' => 1, '*' => 1, '+' => 1, '-' => 1, '/' => 1,
+        '%' => 1,
+        '*' => 1,
+        '+' => 1,
+        '-' => 1,
+        '/' => 1,
 
         // @see Token::FLAG_OPERATOR_LOGICAL
-        '!' => 2, '!=' => 2, '&&' => 2, '<' => 2, '<=' => 2,
-        '<=>' => 2, '<>' => 2, '=' => 2, '>' => 2, '>=' => 2,
+        '!' => 2,
+        '!=' => 2,
+        '&&' => 2,
+        '<' => 2,
+        '<=' => 2,
+        '<=>' => 2,
+        '<>' => 2,
+        '=' => 2,
+        '>' => 2,
+        '>=' => 2,
         '||' => 2,
 
         // @see Token::FLAG_OPERATOR_BITWISE
-        '&' => 4, '<<' => 4, '>>' => 4, '^' => 4, '|' => 4,
+        '&' => 4,
+        '<<' => 4,
+        '>>' => 4,
+        '^' => 4,
+        '|' => 4,
         '~' => 4,
 
         // @see Token::FLAG_OPERATOR_ASSIGNMENT
         ':=' => 8,
 
         // @see Token::FLAG_OPERATOR_SQL
-        '(' => 16, ')' => 16, '.' => 16, ',' => 16, ';' => 16,
-    );
+        '(' => 16,
+        ')' => 16,
+        '.' => 16,
+        ',' => 16,
+        ';' => 16,
+    ];
 
     /**
      * The mode of the MySQL server that will be used in lexing, parsing and
@@ -248,14 +264,14 @@ abstract class Context
      * @param string $str        string to be checked
      * @param bool   $isReserved checks if the keyword is reserved
      *
-     * @return int
+     * @return int|null
      */
     public static function isKeyword($str, $isReserved = false)
     {
         $str = strtoupper($str);
 
         if (isset(static::$KEYWORDS[$str])) {
-            if ($isReserved && !(static::$KEYWORDS[$str] & Token::FLAG_KEYWORD_RESERVED)) {
+            if ($isReserved && ! (static::$KEYWORDS[$str] & Token::FLAG_KEYWORD_RESERVED)) {
                 return null;
             }
 
@@ -273,11 +289,11 @@ abstract class Context
      *
      * @param string $str string to be checked
      *
-     * @return int the appropriate flag for the operator
+     * @return int|null the appropriate flag for the operator
      */
     public static function isOperator($str)
     {
-        if (!isset(static::$OPERATORS[$str])) {
+        if (! isset(static::$OPERATORS[$str])) {
             return null;
         }
 
@@ -308,7 +324,7 @@ abstract class Context
      * @param string $str string to be checked
      * @param mixed  $end
      *
-     * @return int the appropriate flag for the comment type
+     * @return int|null the appropriate flag for the comment type
      */
     public static function isComment($str, $end = false)
     {
@@ -316,18 +332,28 @@ abstract class Context
         if ($len === 0) {
             return null;
         }
+
+        // If comment is Bash style (#):
         if ($str[0] === '#') {
             return Token::FLAG_COMMENT_BASH;
-        } elseif (($len > 1) && ($str[0] === '/') && ($str[1] === '*')) {
-            return (($len > 2) && ($str[2] === '!')) ?
+        }
+        // If comment is opening C style (/*), warning, it could be a MySQL command (/*!)
+        if (($len > 1) && ($str[0] === '/') && ($str[1] === '*')) {
+            return ($len > 2) && ($str[2] === '!') ?
                 Token::FLAG_COMMENT_MYSQL_CMD : Token::FLAG_COMMENT_C;
-        } elseif (($len > 1) && ($str[0] === '*') && ($str[1] === '/')) {
+        }
+        // If comment is closing C style (*/), warning, it could conflicts with wildcard and a real opening C style.
+        // It would looks like the following valid SQL statement: "SELECT */* comment */ FROM...".
+        if (($len > 1) && ($str[0] === '*') && ($str[1] === '/')) {
             return Token::FLAG_COMMENT_C;
-        } elseif (($len > 2) && ($str[0] === '-')
+        }
+        // If comment is SQL style (--\s?):
+        if (($len > 2) && ($str[0] === '-')
             && ($str[1] === '-') && static::isWhitespace($str[2])
         ) {
             return Token::FLAG_COMMENT_SQL;
-        } elseif (($len === 2) && $end && ($str[0] === '-') && ($str[1] === '-')) {
+        }
+        if (($len === 2) && $end && ($str[0] === '-') && ($str[1] === '-')) {
             return Token::FLAG_COMMENT_SQL;
         }
 
@@ -365,7 +391,7 @@ abstract class Context
      */
     public static function isNumber($str)
     {
-        return (($str >= '0') && ($str <= '9')) || ($str === '.')
+        return ($str >= '0') && ($str <= '9') || ($str === '.')
             || ($str === '-') || ($str === '+') || ($str === 'e') || ($str === 'E');
     }
 
@@ -378,7 +404,7 @@ abstract class Context
      *
      * @param string $str string to be checked
      *
-     * @return int the appropriate flag for the symbol type
+     * @return int|null the appropriate flag for the symbol type
      */
     public static function isSymbol($str)
     {
@@ -389,7 +415,7 @@ abstract class Context
             return Token::FLAG_SYMBOL_VARIABLE;
         } elseif ($str[0] === '`') {
             return Token::FLAG_SYMBOL_BACKTICK;
-        } elseif ($str[0] === ':') {
+        } elseif ($str[0] === ':' || $str[0] === '?') {
             return Token::FLAG_SYMBOL_PARAMETER;
         }
 
@@ -404,7 +430,7 @@ abstract class Context
      *
      * @param string $str string to be checked
      *
-     * @return int the appropriate flag for the string type
+     * @return int|null the appropriate flag for the string type
      */
     public static function isString($str)
     {
@@ -448,7 +474,7 @@ abstract class Context
      * @param string $context name of the context or full class name that
      *                        defines the context
      *
-     * @throws LoaderException if the specified context doesn't exist
+     * @throws LoaderException if the specified context doesn't exist.
      */
     public static function load($context = '')
     {
@@ -459,7 +485,7 @@ abstract class Context
             // Short context name (must be formatted into class name).
             $context = self::$contextPrefix . $context;
         }
-        if (!class_exists($context)) {
+        if (! class_exists($context)) {
             throw @new LoaderException(
                 'Specified context ("' . $context . '") does not exist.',
                 $context
@@ -480,7 +506,7 @@ abstract class Context
      * @param string $context name of the context or full class name that
      *                        defines the context
      *
-     * @return string The loaded context. `null` if no context was loaded.
+     * @return string|null The loaded context. `null` if no context was loaded.
      */
     public static function loadClosest($context = '')
     {
@@ -535,7 +561,7 @@ abstract class Context
      * @param array|string $str   the string to be escaped
      * @param string       $quote quote to be used when escaping
      *
-     * @return string
+     * @return string|array
      */
     public static function escape($str, $quote = '`')
     {
@@ -548,7 +574,7 @@ abstract class Context
         }
 
         if ((static::$MODE & self::SQL_MODE_NO_ENCLOSING_QUOTES)
-            && (!static::isKeyword($str, true))
+            && (! static::isKeyword($str, true))
         ) {
             return $str;
         }

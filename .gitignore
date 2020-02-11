@@ -8,3 +8,6 @@ coverage.xml
 .php_cs.cache
 *sw[op]
 phpunit.xml
+phpcs.xml
+/.phpunit.result.cache
+phpstan.neon

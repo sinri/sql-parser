@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Lexer;
 
@@ -74,6 +75,12 @@ class TokenTest extends TestCase
 
         $tok = new Token('@`foo`', Token::TYPE_SYMBOL, Token::FLAG_SYMBOL_VARIABLE);
         $this->assertEquals($tok->value, 'foo');
+
+        $tok = new Token(':foo', Token::TYPE_SYMBOL, Token::FLAG_SYMBOL_PARAMETER);
+        $this->assertEquals($tok->value, 'foo');
+
+        $tok = new Token('?', Token::TYPE_SYMBOL, Token::FLAG_SYMBOL_PARAMETER);
+        $this->assertEquals($tok->value, '?');
     }
 
     public function testInlineToken()
