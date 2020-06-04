@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PhpMyAdmin\SqlParser\Tests\Parser;
 
 use PhpMyAdmin\SqlParser\Tests\TestCase;
@@ -7,9 +9,9 @@ use PhpMyAdmin\SqlParser\Tests\TestCase;
 class DropStatementTest extends TestCase
 {
     /**
-     * @dataProvider dropProvider
-     *
      * @param mixed $test
+     *
+     * @dataProvider dropProvider
      */
     public function testDrop($test)
     {

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Parser;
@@ -28,6 +29,7 @@ class SetStatementTest extends TestCase
             ['parser/parseSetNames'],
             ['parser/parseSetNamesError'],
             ['parser/parseSetError1'],
+            ['parser/parseInsertIntoSet'],
         ];
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Builder;
@@ -40,7 +41,6 @@ class CreateStatementTest extends TestCase
             'DEFAULT CHARACTER SET=utf8 DEFAULT COLLATE=utf8_general_ci',
             $stmt->build()
         );
-
 
         // CREATE SCHEMA ...
         $parser = new Parser(

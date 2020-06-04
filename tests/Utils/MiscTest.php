@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Utils;
@@ -58,9 +59,7 @@ class MiscTest extends TestCase
                         'tables' => [
                             'film' => [
                                 'alias' => null,
-                                'columns' => [
-                                    'film_id' => 'id',
-                                ],
+                                'columns' => ['film_id' => 'id'],
                             ],
                         ],
                     ],

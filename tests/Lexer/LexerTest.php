@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Lexer;
@@ -6,6 +7,7 @@ namespace PhpMyAdmin\SqlParser\Tests\Lexer;
 use PhpMyAdmin\SqlParser\Exceptions\LexerException;
 use PhpMyAdmin\SqlParser\Lexer;
 use PhpMyAdmin\SqlParser\Tests\TestCase;
+use function sprintf;
 
 class LexerTest extends TestCase
 {
@@ -73,6 +75,8 @@ class LexerTest extends TestCase
             ['lexer/lexKeyword2'],
             ['lexer/lexNumber'],
             ['lexer/lexOperator'],
+            ['lexer/lexOperatorStarIsArithmetic'],
+            ['lexer/lexOperatorStarIsWildcard'],
             ['lexer/lexString'],
             ['lexer/lexStringErr1'],
             ['lexer/lexSymbol'],

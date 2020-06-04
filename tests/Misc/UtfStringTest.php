@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Misc;
@@ -6,36 +7,34 @@ namespace PhpMyAdmin\SqlParser\Tests\Misc;
 use PhpMyAdmin\SqlParser\Tests\TestCase;
 use PhpMyAdmin\SqlParser\UtfString;
 use Throwable;
+use function chr;
 
 class UtfStringTest extends TestCase
 {
     /**
      * Sample phrase in French.
-     *
-     * @var UtfString
      */
-    const TEST_PHRASE = 'Les naïfs ægithales hâtifs pondant à Noël où il gèle sont sûrs d\'être déçus en voyant leurs drôles d\'œufs abîmés.';
+    public const TEST_PHRASE = 'Les naïfs ægithales hâtifs pondant à Noël où il '
+        . 'gèle sont sûrs d\'être déçus en voyant leurs drôles d\'œufs abîmés.';
 
     /**
      * The length of the sample phrase.
-     *
-     * @var int
      */
-    const TEST_PHRASE_LEN = 113;
+    public const TEST_PHRASE_LEN = 113;
 
     public function testArrayAccess()
     {
-        $str = new UtfString(static::TEST_PHRASE);
+        $str = new UtfString(self::TEST_PHRASE);
 
         // offsetExists
-        $this->assertArrayHasKey(static::TEST_PHRASE_LEN - 1, $str);
+        $this->assertArrayHasKey(self::TEST_PHRASE_LEN - 1, $str);
         $this->assertArrayNotHasKey(-1, $str);
-        $this->assertArrayNotHasKey(static::TEST_PHRASE_LEN, $str);
+        $this->assertArrayNotHasKey(self::TEST_PHRASE_LEN, $str);
 
         // offsetGet
-        $this->assertEquals('.', $str[static::TEST_PHRASE_LEN - 1]);
+        $this->assertEquals('.', $str[self::TEST_PHRASE_LEN - 1]);
         $this->assertNull($str[-1]);
-        $this->assertNull($str[static::TEST_PHRASE_LEN]);
+        $this->assertNull($str[self::TEST_PHRASE_LEN]);
     }
 
     public function testSet()
@@ -77,8 +76,8 @@ class UtfStringTest extends TestCase
 
     public function testToString()
     {
-        $str = new UtfString(static::TEST_PHRASE);
-        $this->assertEquals(static::TEST_PHRASE, (string) $str);
+        $str = new UtfString(self::TEST_PHRASE);
+        $this->assertEquals(self::TEST_PHRASE, (string) $str);
     }
 
     /**

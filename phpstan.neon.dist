@@ -1,10 +1,13 @@
+includes:
+    - phpstan-baseline.neon
 parameters:
-    level: 2
+    level: max
     paths:
+        - bin
         - src
         - tests
-        - bin
+        - tools
     reportUnmatchedIgnoredErrors: true
     inferPrivatePropertyTypeFromConstructor: true
-    ignoreErrors:
-        - '#Unsafe usage of new static\(\)\.#'
+    excludes_analyse:
+        - tools/sami-config.php

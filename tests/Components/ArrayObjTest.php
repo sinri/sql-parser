@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Components;
@@ -29,9 +30,7 @@ class ArrayObjTest extends TestCase
             $this->getTokensList('(1 + 2, 3 + 4)'),
             [
                 'type' => Expression::class,
-                'typeOptions' => [
-                    'breakOnParentheses' => true,
-                ],
+                'typeOptions' => ['breakOnParentheses' => true],
             ]
         );
         $this->assertInstanceOf(Expression::class, $components[0]);

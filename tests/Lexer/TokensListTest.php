@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Lexer;
@@ -6,6 +7,7 @@ namespace PhpMyAdmin\SqlParser\Tests\Lexer;
 use PhpMyAdmin\SqlParser\Tests\TestCase;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokensList;
+use function count;
 
 class TokensListTest extends TestCase
 {
@@ -45,6 +47,7 @@ class TokensListTest extends TestCase
         foreach ($this->tokens as $token) {
             $list->add($token);
         }
+
         $this->assertEquals(new TokensList($this->tokens), $list);
     }
 

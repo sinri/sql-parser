@@ -1,10 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpMyAdmin\SqlParser\Tests\Utils;
 
 use PhpMyAdmin\SqlParser\Tests\TestCase;
 use PhpMyAdmin\SqlParser\Utils\BufferedQuery;
+use function count;
+use function str_split;
 
 class BufferedQueryTest extends TestCase
 {
@@ -40,7 +43,9 @@ class BufferedQueryTest extends TestCase
         // Feeding chunks and extracting queries.
         $i = 0;
         while ($i < $count) {
-            if ($stmt = $bq->extract()) {
+            $stmt = $bq->extract();
+
+            if ($stmt) {
                 $statements[] = $stmt;
             } else {
                 $bq->query .= $chunks[$i++];
@@ -69,7 +74,8 @@ class BufferedQueryTest extends TestCase
             '/* a comment */ DELIMITER $$' . "\n" .
             '' . "\n" .
             '# Bash-like comment sytanx.' . "\n" .
-            'CREATE DEFINER=`root`@`localhost` PROCEDURE `film_in_stock` (IN `p_film_id` INT, IN `p_store_id` INT, OUT `p_film_count` INT)  READS SQL DATA' . "\n" .
+            'CREATE DEFINER=`root`@`localhost` PROCEDURE `film_in_stock` (IN `p_film_id` ' .
+            'INT, IN `p_store_id` INT, OUT `p_film_count` INT)  READS SQL DATA' . "\n" .
             'BEGIN' . "\n" .
             '     SELECT inventory_id' . "\n" .
             '     FROM inventory' . "\n" .
@@ -187,7 +193,8 @@ class BufferedQueryTest extends TestCase
                     'SET time_zone = "+00:00"',
 
                     '# Bash-like comment sytanx.' . "\n" .
-                    'CREATE DEFINER=`root`@`localhost` PROCEDURE `film_in_stock` (IN `p_film_id` INT, IN `p_store_id` INT, OUT `p_film_count` INT)  READS SQL DATA' . "\n" .
+                    'CREATE DEFINER=`root`@`localhost` PROCEDURE `film_in_stock` (IN `p_film_id` ' .
+                    'INT, IN `p_store_id` INT, OUT `p_film_count` INT)  READS SQL DATA' . "\n" .
                     'BEGIN' . "\n" .
                     '     SELECT inventory_id' . "\n" .
                     '     FROM inventory' . "\n" .
@@ -243,7 +250,8 @@ class BufferedQueryTest extends TestCase
                     '/* a comment */  DELIMITER $$',
 
                     '# Bash-like comment sytanx.' . "\n" .
-                    'CREATE DEFINER=`root`@`localhost` PROCEDURE `film_in_stock` (IN `p_film_id` INT, IN `p_store_id` INT, OUT `p_film_count` INT)  READS SQL DATA' . "\n" .
+                    'CREATE DEFINER=`root`@`localhost` PROCEDURE `film_in_stock` (IN `p_film_id` ' .
+                    'INT, IN `p_store_id` INT, OUT `p_film_count` INT)  READS SQL DATA' . "\n" .
                     'BEGIN' . "\n" .
                     '     SELECT inventory_id' . "\n" .
                     '     FROM inventory' . "\n" .
@@ -299,7 +307,8 @@ class BufferedQueryTest extends TestCase
                     'SET time_zone = "+00:00";',
 
                     '# Bash-like comment sytanx.' . "\n" .
-                    'CREATE DEFINER=`root`@`localhost` PROCEDURE `film_in_stock` (IN `p_film_id` INT, IN `p_store_id` INT, OUT `p_film_count` INT)  READS SQL DATA' . "\n" .
+                    'CREATE DEFINER=`root`@`localhost` PROCEDURE `film_in_stock` (IN `p_film_id` ' .
+                    'INT, IN `p_store_id` INT, OUT `p_film_count` INT)  READS SQL DATA' . "\n" .
                     'BEGIN' . "\n" .
                     '     SELECT inventory_id' . "\n" .
                     '     FROM inventory' . "\n" .
